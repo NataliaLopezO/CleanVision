@@ -1,0 +1,12 @@
+{
+    "manifest_version":3,
+    "name": "CleanVision",
+    "version": "1.0",
+    "description": "Reconocer y censurar automáticamente el contenido para adultos en imágenes",
+    "icons": {
+        "128":"control.png"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
