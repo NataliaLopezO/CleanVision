@@ -1,8 +1,8 @@
-var imagenes = document.getElementsByTagName("img");
+const API_KEY = "";
 
-const API_KEY = "###"
 
-async function getDef(image) {
+const isTarget = async (image_src) => {
+
   const response = await fetch('https://eastus.api.cognitive.microsoft.com/vision/v3.2/analyze?visualFeatures=Tags,Adult', {
     method: "POST",
     headers: {
@@ -10,48 +10,72 @@ async function getDef(image) {
       "Ocp-Apim-Subscription-Key": `${API_KEY}`,
     },
     body: JSON.stringify({
-      "url":image
+      "url": image_src
     }),
   });
 
-  return response;
-}
+  if (!response.ok)
+    return null
 
-// Iterar sobre cada imagen y mostrar su src en la consola
-for (let i = 0; i < imagenes.length; i++) {
+  data_json = await response.json()
 
-  //console.log("Imagen " + (i + 1) + ": " + imagenes[i].src);
+  return data_json.adult.isAdultContent || data_json.adult.isRacyContent || data_json.adult.isGoryContent
 
-  var src = imagenes[i].src;
+};
 
-  if (src.startsWith("http")) {
-    // Llamar a la función aquí
-    getDef(src)
-      .then(response => {
-        // Verificar si la respuesta fue exitosa (código de estado 200)
-        if (response.ok) {
-          // Convertir la respuesta a JSON
-          return response.json();
-        } else {
-          // Si la respuesta no es exitosa, lanzar un error con el mensaje de la API
-          throw new Error('Error en la solicitud: ' + response.statusText);
-        }
-      })
-      .then(data => {
-        // Manejar los datos obtenidos de la API para esta imagen
-        console.log("Datos para la imagen " + (i + 1) + ": ", data);
-        if(data.adult.isAdultContent || data.adult.isRacyContent || data.adult.isGoryContent){
-          imagenes[i].src = "https://www.shutterstock.com/image-photo/cute-teddy-bear-isolated-on-260nw-2321681935.jpg"
-          console.log(src)
-        }
 
-        
-      })
-      .catch(error => {
-        // Manejar errores de la solicitud
-        console.error("Error al obtener datos de la API de la imagen:" + (i + 1) + ": ", error);
-      });
-    
+const processImage = async (img) => {
+  if (img.naturalHeight <= 50 || img.naturalWidth <= 50) {
+    return;
   }
+  console.log('Processing image:', img.src);
+  const targetDetected = await isTarget(img.src);
+  console.log('Target detected:', targetDetected);
 
-}
+  if (targetDetected) {
+
+    image_url = "https://pbs.twimg.com/media/FqjP42SWABIV59K.jpg"
+
+    img.src = image_url
+
+  }
+};
+
+const imageObserver = new IntersectionObserver((entries, observer) => {
+  entries.forEach(async (entry) => {
+    if (entry.isIntersecting) {
+      observer.unobserve(entry.target);
+      await processImage(entry.target);
+    }
+  });
+}, {
+  rootMargin: '0px',
+  threshold: 0.1
+});
+
+
+const setupObservers = () => {
+  Array.from(document.getElementsByTagName("img")).forEach(async img => {
+    imageObserver.observe(img);
+  });
+
+  // Observe new images added to the DOM
+  const mutationObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.tagName === 'IMG') {
+          imageObserver.observe(node);
+        }
+      });
+    });
+  });
+
+  mutationObserver.observe(document.body, { childList: true, subtree: true });
+};
+
+const intervalId = setInterval(() => {
+
+  setupObservers();
+  clearInterval(intervalId);
+
+}, 100); // Check every 100ms
