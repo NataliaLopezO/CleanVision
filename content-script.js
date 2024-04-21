@@ -1,7 +1,7 @@
 
 const isTarget = async (image_src) => {
 
-  const response = await fetch('http://127.0.0.1:8000/is-adult-content/', {
+  const response = await fetch('https://pi.juanbailon.xyz/is-adult-content/', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
