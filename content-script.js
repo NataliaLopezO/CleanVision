@@ -1,25 +1,22 @@
-const API_KEY = "";
-
 
 const isTarget = async (image_src) => {
 
-  const response = await fetch('https://eastus.api.cognitive.microsoft.com/vision/v3.2/analyze?visualFeatures=Tags,Adult', {
+  const response = await fetch('http://127.0.0.1:8000/is-adult-content/', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Ocp-Apim-Subscription-Key": `${API_KEY}`,
     },
     body: JSON.stringify({
-      "url": image_src
+      "img_url": image_src
     }),
   });
 
   if (!response.ok)
     return null
 
-  data_json = await response.json()
+  data = await response.json()
 
-  return data_json.adult.isAdultContent || data_json.adult.isRacyContent || data_json.adult.isGoryContent
+  return data.is_adult_content
 
 };
 
