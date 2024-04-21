@@ -2,6 +2,7 @@ import os
 import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,6 +12,13 @@ class ImageURL(BaseModel):
 
 
 app = FastAPI()
+
+origins = [
+    "*"
+]
+app.add_middleware(
+    CORSMiddleware, allow_origins=origins, allow_methods=["*"], allow_headers=["*"]
+)
 
 API_KEY = os.getenv("API_KEY")
 
@@ -59,7 +67,8 @@ async def check_for_adult_content(img_url: ImageURL):
     try:
         result = analyze_image(img_url.img_url)
 
-        return result['adult']['isAdultContent'] or result['adult']['isRacyContent'] or result['adult']['isGoryContent']
+        is_adult = result['adult']['isAdultContent'] or result['adult']['isRacyContent'] or result['adult']['isGoryContent']
+        return {"is_adult_content": is_adult}
     
     except HTTPException as e:
         raise e
