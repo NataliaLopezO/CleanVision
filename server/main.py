@@ -2,6 +2,7 @@ import os
 import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,6 +12,13 @@ class ImageURL(BaseModel):
 
 
 app = FastAPI()
+
+origins = [
+    "*"
+]
+app.add_middleware(
+    CORSMiddleware, allow_origins=origins, allow_methods=["*"], allow_headers=["*"]
+)
 
 API_KEY = os.getenv("API_KEY")
 
